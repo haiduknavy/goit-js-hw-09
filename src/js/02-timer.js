@@ -8,6 +8,7 @@ const dataHours = document.querySelector('span[data-hours]');
 const dataMinutes = document.querySelector('span[data-minutes]');
 const dataSeconds = document.querySelector('span[data-seconds]');
 const dataStart = document.querySelector('button[data-start]');
+let userData = null;
 
 function convertMs(ms) {
   const second = 1000;
@@ -33,28 +34,35 @@ const options = {
     defaultDate: new Date(),
     minuteIncrement: 1,
     onClose(selectedDates) {
-      if ( selectedDates[0] <= new Date()) {
-        Notify.failure("Please choose a date in the future");
-    } else {
-          dataStart.removeAttribute('disabled');
-    };
+      if (selectedDates[0] - new Date() > 0) {
+        userData = selectedDates[0]
+        dataStart.removeAttribute('disabled');
+        dataStart.addEventListener('click', () => onStartTimer(selectedDates[0]));
+      } else {
+        Notify.failure('Please choose a date in the future');
+      }
     },
   };
 
 const calendar = flatpickr(dateTime, options);
 
-dataStart.addEventListener('click', () => {
-  const timerId =  setInterval(() => {
-     const timer = calendar.selectedDates[0].getTime() - Date.now();
-     const startTimer = convertMs(timer)
-     dataDays.textContent = startTimer.days;
-     dataHours.textContent = startTimer.hours;
-     dataMinutes.textContent = startTimer.minutes;
-     dataSeconds.textContent = startTimer.seconds;
-     if (timer <= 1000) {
-       clearInterval(timerId);
-    };
-   }, 1000);
-   
-});
+dataStart.addEventListener('click', onStartTimer);
 
+function onStartTimer (e){
+  dataStart.setAttribute('disabled', true);
+  dateTime.setAttribute('disabled', true);
+
+  intervalId = setInterval(() => {
+    let timeToPoint = userData - new Date();
+    if (timeToPoint < 0) {
+      dataStart.removeAttribute('disabled', true);
+      dateTime.removeAttribute('disabled', true);
+      return;
+    }
+    dataDays.textContent = addLeadingZero(String(convertMs(timeToPoint).days));
+    dataHours.textContent = addLeadingZero(String(convertMs(timeToPoint).hours));
+    dataMinutes.textContent = addLeadingZero(String(convertMs(timeToPoint).minutes));
+    dataSeconds.textContent = addLeadingZero(String(convertMs(timeToPoint).seconds));
+  }, 1000);
+
+}

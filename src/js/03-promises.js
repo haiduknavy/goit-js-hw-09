@@ -21,25 +21,26 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
   return promise;
 };
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', onSubmit);
+
+function onSubmit (e){
   e.preventDefault();
- 
-  const firstDelay = Number(delayInput.value);
-  const step = Number(stepInput.value);
-  const amount = Number(amountInput.value);
-  let delay = firstDelay;
-  for (let i = 1; i <= amount; i += 1){
-    delay += step
-     createPromise(i, delay)
-     .then(({ position, delay }) => {
-    setTimeout(() => {
-      Notify.success(`✅ Fulfilled promise ${position} in ${delay}ms`);
-    }, delay);
-  })
-       .catch(({ position, delay }) => {
-    setTimeout(() => {
-      Notify.failure(`❌ Rejected promise ${position} in ${delay}ms`);
-    }, delay);
-  });
+
+  let delay = Number(e.target.delay.value);
+  const step = Number(e.target.step.value);
+  const amount = Number(e.target.amount.value);
+  if (delay < 0 || step < 0 || amount <= 0){
+    Notify.success('Всі значення мають бути заповнені');
+  } else {
+    for (let i = 1; i <= amount; i += 1) {
+      createPromise(i, delay)
+        .then(({ position, delay }) => {
+          Notify.success(`✅ Fulfilled promise ${position} in ${delay}ms`, { useIcon: false });
+        })
+        .catch(({ position, delay }) => {
+          Notify.failure(`❌ Rejected promise ${position} in ${delay}ms`, { useIcon: false });
+        });
+      delay += step;
+    }
   }
-});
+}
